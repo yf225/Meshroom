@@ -61,7 +61,7 @@ It is robust to motion-blur, depth-of-field, occlusion. Be careful to have enoug
             description='Control the ImageDescriber density (low, medium, normal, high, ultra).\n'
                         'Warning: Use ULTRA only on small datasets.',
             value='normal',
-            values=['low', 'medium', 'normal', 'high', 'ultra', 'custom'],
+            values=['low', 'benchmark', 'medium', 'normal', 'high', 'ultra', 'custom'],
             exclusive=True,
             uid=[0],
             group=lambda node: 'allParams' if node.describerPreset.value != 'custom' else None,
