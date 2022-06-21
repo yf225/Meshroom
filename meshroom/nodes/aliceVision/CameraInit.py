@@ -163,6 +163,13 @@ The metadata needed are:
             value='${ALICEVISION_SENSOR_DB}',
             uid=[],
         ),
+        desc.File(
+            name='colorProfileDatabase',
+            label='Color Profile Database',
+            description='''Color Profile database directory path.''',
+            value='${ALICEVISION_COLOR_PROFILE_DB}',
+            uid=[],
+        ),
         desc.FloatParam(
             name='defaultFieldOfView',
             label='Default Field Of View',
@@ -200,8 +207,15 @@ The metadata needed are:
         ),
         desc.BoolParam(
             name='useInternalWhiteBalance',
-            label='Apply internal white balance',
+            label='Apply Internal White Balance',
             description='Apply image white balance (Only for raw images)',
+            value=True,
+            uid=[0],
+        ),
+        desc.BoolParam(
+            name='errorOnMissingColorProfile',
+            label='Error On Missing Color Profile',
+            description='If a color profile database is specified but no color profile is found for at least one image, then an error is thrown',
             value=True,
             uid=[0],
         ),
