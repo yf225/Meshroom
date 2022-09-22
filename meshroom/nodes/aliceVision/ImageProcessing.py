@@ -305,6 +305,15 @@ Convert or apply filtering to the input images.
                 exclusive=True,
                 uid=[0],
         ),
+        desc.BoolParam(
+            name='applyToneCurve',
+            label='Apply Tone Curve',
+            description='Apply color profile tone curve if any.\n'
+                        'Note: If the dng color profile originates from Adobe, then the Adobe default tone curve\n'
+                        'will be applied if no tone curve is embedded within the profile.',
+            value=False,
+            uid=[0],
+        ),
         desc.ChoiceParam(
             name='storageDataType',
             label='Storage Data Type for EXR output',
