@@ -23,6 +23,11 @@ from meshroom.ui import commands
 from meshroom.ui.utils import makeProperty
 
 
+class PollerRefreshStatus(Enum):
+    AUTO_ENABLED = 0
+    DISABLED = 1
+
+
 class FilesModTimePollerThread(QObject):
     """
     Thread responsible for non-blocking polling of last modification times of a list of files.
@@ -38,6 +43,7 @@ class FilesModTimePollerThread(QObject):
         self._stopFlag = Event()
         self._refreshInterval = 5  # refresh interval in seconds
         self._files = []
+        self._filePollerRefresh = PollerRefreshStatus.AUTO_ENABLED
 
     def start(self, files=None):
         """ Start polling thread.
@@ -45,6 +51,8 @@ class FilesModTimePollerThread(QObject):
         Args:
             files: the list of files to monitor
         """
+        if self._filePollerRefresh is not PollerRefreshStatus.AUTO_ENABLED:
+            return
         if self._thread:
             # thread already running, return
             return
@@ -88,6 +96,15 @@ class FilesModTimePollerThread(QObject):
                 if files == self._files:
                     self.timesAvailable.emit(times)
 
+    def onFilePollerRefreshChanged(self, value):
+        self._filePollerRefresh = PollerRefreshStatus(value)
+        if self._filePollerRefresh is PollerRefreshStatus.AUTO_ENABLED:
+            self.start()
+        else:
+            self.stop()
+
+    filePollerRefresh = Property(int, lambda self: self._filePollerRefresh.value, constant=True)
+
 
 class ChunksMonitor(QObject):
     """
@@ -106,6 +123,8 @@ class ChunksMonitor(QObject):
         self._filesTimePoller.timesAvailable.connect(self.compareFilesTimes)
         self._filesTimePoller.start()
         self.setChunks(chunks)
+
+        self.filePollerRefreshChanged.connect(self._filesTimePoller.onFilePollerRefreshChanged)
 
     def setChunks(self, chunks):
         """ Set the list of chunks to monitor. """
@@ -135,6 +154,8 @@ class ChunksMonitor(QObject):
             if fileModTime != chunk.statusFileLastModTime:
                 chunk.updateStatusFromCache()
 
+    filePollerRefreshChanged = Signal(int)
+    filePollerRefresh = Property(int, lambda self: self._filesTimePoller.filePollerRefresh, notify=filePollerRefreshChanged)
 
 class GraphLayout(QObject):
     """
@@ -278,6 +299,7 @@ class UIGraph(QObject):
         self._hoveredNode = None
 
         self.computeStatusChanged.connect(self.updateLockedUndoStack)
+        self.filePollerRefreshChanged.connect(self._chunksMonitor.filePollerRefreshChanged)
 
     def setGraph(self, g):
         """ Set the internal graph. """
@@ -934,3 +956,5 @@ class UIGraph(QObject):
     hoveredNodeChanged = Signal()
     # Currently hovered node
     hoveredNode = makeProperty(QObject, "_hoveredNode", hoveredNodeChanged, resetOnDestroy=True)
+    filePollerRefreshChanged = Signal(int)
+    filePollerRefresh = Property(int, lambda self: self._chunksMonitor.filePollerRefresh, notify=filePollerRefreshChanged)
