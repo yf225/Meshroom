@@ -1,3 +1,4 @@
+#!/bin/bash
 
 PATH_QML=${ION_CONTAINER_ROOT}/base/qml/QtQuick
 PATH_QML_TRUE=`readlink -f $PATH_QML`/../
