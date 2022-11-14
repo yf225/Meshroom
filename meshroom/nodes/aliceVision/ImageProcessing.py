@@ -301,10 +301,30 @@ Convert or apply filtering to the input images.
                 label='Output Color Space',
                 description='Allows you to choose the color space of the output image.',
                 value='AUTO',
-                values=['AUTO', 'sRGB', 'Linear', 'ACES2065-1', 'ACEScg'],
+                values=['AUTO', 'sRGB', 'Linear', 'ACES2065-1', 'ACEScg', 'no_conversion'],
                 exclusive=True,
                 uid=[0],
         ),
+        desc.ChoiceParam(
+                name='workingColorSpace',
+                label='Working Color Space',
+                description='Allows you to choose the color space in which the data are processed.',
+                value='Linear',
+                values=['sRGB', 'Linear', 'ACES2065-1', 'ACEScg', 'no_conversion'],
+                exclusive=True,
+                uid=[0],
+        ),
+        
+        desc.ChoiceParam(
+                name='rawColorInterpretation',
+                label='RAW Color Interpretation',
+                description='Allows you to choose how raw data are color processed.',
+                value='LibRawNoWhiteBalancing',
+                values=['None', 'LibRawNoWhiteBalancing', 'LibRawWhiteBalancing', 'DCPLinearProcessing_Required', 'DCPLinearProcessing_ifAvailable', 'DCPMetadata_Required', 'DCPMetadata_ifAvailable'],
+                exclusive=True,
+                uid=[0],
+        ),
+        
         desc.BoolParam(
             name='applyToneCurve',
             label='Apply Tone Curve',
