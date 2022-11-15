@@ -320,7 +320,7 @@ Convert or apply filtering to the input images.
                 label='RAW Color Interpretation',
                 description='Allows you to choose how raw data are color processed.',
                 value='LibRawNoWhiteBalancing',
-                values=['None', 'LibRawNoWhiteBalancing', 'LibRawWhiteBalancing', 'DCPLinearProcessing_Required', 'DCPLinearProcessing_ifAvailable', 'DCPMetadata_Required', 'DCPMetadata_ifAvailable', 'Auto'],
+                values=['None', 'LibRawNoWhiteBalancing', 'LibRawWhiteBalancing', 'DCPLinearProcessing', 'DCPMetadata', 'Auto'],
                 exclusive=True,
                 uid=[0],
         ),
