@@ -205,11 +205,13 @@ The metadata needed are:
             joinChar=',',
             advanced=True,
         ),
-        desc.BoolParam(
-            name='useInternalWhiteBalance',
-            label='Apply Internal White Balance',
-            description='Apply image white balance (Only for raw images)',
-            value=True,
+        desc.ChoiceParam(
+            name='rawColorInterpretation',
+            label='RAW Color Interpretation',
+            description='Allows you to choose how raw data are color processed.',
+            value='LibRawNoWhiteBalancing',
+            values=['None', 'LibRawNoWhiteBalancing', 'LibRawWhiteBalancing', 'DCPLinearProcessing_Required', 'DCPLinearProcessing_ifAvailable', 'DCPMetadata_Required', 'DCPMetadata_ifAvailable'],
+            exclusive=True,
             uid=[0],
         ),
         desc.BoolParam(
