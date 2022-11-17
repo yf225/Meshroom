@@ -325,15 +325,22 @@ Convert or apply filtering to the input images.
                 uid=[0],
         ),
         
+        desc.File(
+            name='colorProfileDatabase',
+            label='Color Profile Database',
+            description='''Color Profile database directory path.''',
+            value='${ALICEVISION_COLOR_PROFILE_DB}',
+            uid=[],
+        ),
+        
         desc.BoolParam(
-            name='applyToneCurve',
-            label='Apply Tone Curve',
-            description='Apply color profile tone curve if any.\n'
-                        'Note: If the dng color profile originates from Adobe, then the Adobe default tone curve\n'
-                        'will be applied if no tone curve is embedded within the profile.',
-            value=False,
+            name='errorOnMissingColorProfile',
+            label='Error On Missing DCP Color Profile',
+            description='If a color profile database is specified but no color profile is found for at least one image, then an error is thrown',
+            value=True,
             uid=[0],
         ),
+        
         desc.ChoiceParam(
             name='storageDataType',
             label='Storage Data Type for EXR output',
