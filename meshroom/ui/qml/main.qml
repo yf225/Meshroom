@@ -912,7 +912,16 @@ ApplicationWindow {
                             else
                                 return MaterialIcons.sync_disabled
                         }
-                        ToolTip.text: "Set File Watcher Refresh Status"
+                        ToolTip.text: {
+                            var status = ""
+                            if (_reconstruction.filePollerRefresh == 0)
+                                status = "Enabled"
+                            else if (_reconstruction.filePollerRefresh == 2)
+                                status = "Minimal"
+                            else
+                                status = "Disabled"
+                            return "Set File Watcher Refresh Status (Current: " + status + ")"
+                        }
                         ToolTip.visible: hovered
                         font.pointSize: 11
                         padding: 2
@@ -942,6 +951,7 @@ ApplicationWindow {
                                     // Prevents cases where the user unchecks the currently checked option
                                     enableAutoRefresh.checked = true
                                     filePollerRefreshStatus.text = MaterialIcons.published_with_changes
+                                    filePollerRefreshStatus.ToolTip.text = "Set File Watcher Refresh Status (Current: Enabled)"
                                 }
                             }
                             MenuItem {
@@ -961,6 +971,7 @@ ApplicationWindow {
                                     // Prevents cases where the user unchecks the currently checked option
                                     disableAutoRefresh.checked = true
                                     filePollerRefreshStatus.text = MaterialIcons.sync_disabled
+                                    filePollerRefreshStatus.ToolTip.text = "Set File Watcher Refresh Status (Current: Disabled)"
                                 }
                             }
                             MenuItem {
@@ -980,6 +991,7 @@ ApplicationWindow {
                                     // Prevents cases where the user unchecks the currently checked option
                                     minimalAutoRefresh.checked = true
                                     filePollerRefreshStatus.text = MaterialIcons.sync
+                                    filePollerRefreshStatus.ToolTip.text = "Set File Watcher Refresh Status (Current: Minimal)"
                                 }
                             }
                         }
