@@ -904,7 +904,14 @@ ApplicationWindow {
                     }
                     MaterialToolButton {
                         id: filePollerRefreshStatus
-                        text: (_reconstruction.filePollerRefresh == 0 || _reconstruction.filePollerRefresh == 2) ? MaterialIcons.sync : MaterialIcons.sync_disabled
+                        text: {
+                            if (_reconstruction.filePollerRefresh == 0)
+                                return MaterialIcons.published_with_changes
+                            else if (_reconstruction.filePollerRefresh == 2)
+                                return MaterialIcons.sync
+                            else
+                                return MaterialIcons.sync_disabled
+                        }
                         ToolTip.text: "Set File Watcher Refresh Status"
                         ToolTip.visible: hovered
                         font.pointSize: 11
@@ -934,7 +941,7 @@ ApplicationWindow {
                                     }
                                     // Prevents cases where the user unchecks the currently checked option
                                     enableAutoRefresh.checked = true
-                                    filePollerRefreshStatus.text = MaterialIcons.sync
+                                    filePollerRefreshStatus.text = MaterialIcons.published_with_changes
                                 }
                             }
                             MenuItem {
