@@ -43,4 +43,4 @@ optional arguments:
 
 
 Example:
-./meshroom_batch -i /fsx/users/willfeng/3d_recon/images/key -p photogrammetry -o /fsx/users/willfeng/3d_recon/output/key --save /fsx/users/willfeng/3d_recon/save/key/key_proj.mg --forceCompute
+time ./meshroom_batch -i /fsx/users/willfeng/3d_recon/images/key -p photogrammetry -o /fsx/users/willfeng/3d_recon/output/key --save /fsx/users/willfeng/3d_recon/save/key/key_proj.mg --forceCompute
