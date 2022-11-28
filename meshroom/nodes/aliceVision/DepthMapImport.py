@@ -28,7 +28,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             name="depthMapsFolder",
             label="DepthMaps Folder",
             description="Input depth maps folder to calculate the scale between calculated depthMaps and imported depthMaps",
-            value="",
+            value="/fsx/users/willfeng/3d_recon/images_jpg_depth/steamer",
             uid=[0],
         ),
         desc.StringParam(
@@ -43,7 +43,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             name='depthImageSuffix',
             label='Depth Image suffix',
             description='Used to guess the depthImage filename using the rgbImage filename: rgbPath.replace(rgbImageSuffix, depthImageSuffix)',
-            value="_depth.jpg",
+            value="-depth.jpg",
             uid=[0],
             advanced=True,
         ),
@@ -59,7 +59,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             name='ratio',
             label='Ratio/Scale',
             description='Ratio between Sfm coordinate and imported depth. If 0, we will estimate it comparating center point of 1st image. Usually imported depth are in meters/millimeters',
-            value=0.0,
+            value=0
             range=(0.0, 10.0, 0.1), #I dont want it, but thats mandatory
             uid=[0],
             advanced=True,
