@@ -396,13 +396,14 @@ def mvsPipeline(graph, sfm=None):
 
     prepareDenseScene = graph.addNewNode('PrepareDenseScene',
                                          input=sfm.output if sfm else "")
-    depthMap = graph.addNewNode('DepthMapImport',  # DepthMap
-                                input=prepareDenseScene.input,
-                                )
-                                # imagesFolder=prepareDenseScene.output)
+    # depthMap = graph.addNewNode('DepthMap',
+    #                             input=prepareDenseScene.input,
+    #                             imagesFolder=prepareDenseScene.output)
+    depthMapImport = graph.addNewNode('DepthMapImport',
+                                input=prepareDenseScene.input)
     depthMapFilter = graph.addNewNode('DepthMapFilter',
-                                      input=depthMap.input,
-                                      depthMapsFolder=depthMap.output)
+                                      input=depthMapImport.input,
+                                      depthMapsFolder=depthMapImport.output)
     meshing = graph.addNewNode('Meshing',
                                input=depthMapFilter.input,
                                depthMapsFolder=depthMapFilter.output)
@@ -410,7 +411,8 @@ def mvsPipeline(graph, sfm=None):
                                      inputMesh=meshing.outputMesh)
     texturing = graph.addNewNode('Texturing',
                                  input=meshing.output,
-                                 imagesFolder=depthMap.imagesFolder,
+                                 # imagesFolder=depthMap.imagesFolder,
+                                 imagesFolder=prepareDenseScene.output,
                                  inputMesh=meshFiltering.outputMesh)
 
     return [
