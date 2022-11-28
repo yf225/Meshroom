@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import hashlib
 from contextlib import contextmanager
 import importlib

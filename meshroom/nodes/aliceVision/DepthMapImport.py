@@ -1,3 +1,5 @@
+__version__ = "0.1"
+
 from meshroom.core import desc
 import os
 import cv2 as cv
