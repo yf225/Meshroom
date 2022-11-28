@@ -398,7 +398,8 @@ def mvsPipeline(graph, sfm=None):
                                          input=sfm.output if sfm else "")
     depthMap = graph.addNewNode('DepthMapImport',  # DepthMap
                                 input=prepareDenseScene.input,
-                                imagesFolder=prepareDenseScene.output)
+                                )
+                                # imagesFolder=prepareDenseScene.output)
     depthMapFilter = graph.addNewNode('DepthMapFilter',
                                       input=depthMap.input,
                                       depthMapsFolder=depthMap.output)
