@@ -59,7 +59,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             name='ratio',
             label='Ratio/Scale',
             description='Ratio between Sfm coordinate and imported depth. If 0, we will estimate it comparating center point of 1st image. Usually imported depth are in meters/millimeters',
-            value=0
+            value=0,
             range=(0.0, 10.0, 0.1), #I dont want it, but thats mandatory
             uid=[0],
             advanced=True,
