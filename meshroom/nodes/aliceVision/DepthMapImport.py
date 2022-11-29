@@ -113,18 +113,23 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
 
     def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbImageSuffix, depthImageSuffix, ratio = 0.0):
-        try:
-            f = open(cameras, 'rb')
-        except Exception as e:
-            raise Exception("here01")
-        try:
-            data = json.load(f)
-        except Exception as e:
-            raise Exception(f"here02: cameras: {cameras}, f: {f}: str(e): {str(e)}")
+        # try:
+        #     f = open(cameras, 'rb')
+        # except Exception as e:
+        #     raise Exception("here01")
+        # try:
+        #     data = json.load(f)
+        # except Exception as e:
+        #     raise Exception(f"here02: cameras: {cameras}, f: {f}: str(e): {str(e)}")
+
+        from meshroom.nodes.aliceVision.CameraInit import readSfMData
+        views, intrinsics = readSfMData(cameras)
+        chunk.logger.info(f"views: {views}, intrinsics: {intrinsics}")
 
         intrinsicsScaled = None
 
-        for view in data["views"]:
+        # for view in data["views"]:
+        for view in views:
             if self._stopped: raise RuntimeError("User asked to stop")
             rgb = view["path"]
             intputTofPath = rgb.replace(rgbImageSuffix, depthImageSuffix)  # add type png, jpg or depth16
