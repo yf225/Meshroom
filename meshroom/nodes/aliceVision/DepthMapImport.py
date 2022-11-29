@@ -120,7 +120,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         try:
             data = json.load(f)
         except Exception as e:
-            raise Exception(f"here02: cameras: {cameras}, f: {f}")
+            raise Exception(f"here02: cameras: {cameras}, f: {f}: str(e): {str(e)}")
 
         intrinsicsScaled = None
 
