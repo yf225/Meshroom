@@ -124,12 +124,12 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbIntrinsics, rgbImageSuffix, depthImageSuffix):  #, ratio = 0.0):
         chunk.logger.info(f"depthIntrinsics: {depthIntrinsics}")
-        chunk.logger.info(f"rgbIntrinsics._objects: {rgbIntrinsics._objects}")
-        for key in rgbIntrinsics._objects[0]._value:
-            chunk.logger.info(f"key, rgbIntrinsics._objects[0]._value[key]: {key}, {rgbIntrinsics._objects[0]._value[key]}")
+        chunk.logger.info(f"rgbIntrinsics._objects: {rgbIntrinsics.objects}")
+        for key in rgbIntrinsics.objects[0].value.objects[key]:
+            chunk.logger.info(f"key, rgbIntrinsics.objects[0].value.objects[key]: {key}, {rgbIntrinsics.objects[0].value.objects[key]}")
         import pickle
         with open('/fsx/users/willfeng/3d_recon/Meshroom/rgbIntrinsics.pickle', 'wb') as f:
-            pickle.dump(rgbIntrinsics._objects[0]._value, f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(rgbIntrinsics.objects[0].value.objects, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         f = open(cameras,)
         data = json.load(f)
