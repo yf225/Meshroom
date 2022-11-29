@@ -128,9 +128,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
 
             if not intrinsicsScaled:
-                print("here1 before")
-                inputExr = cv.imread(inputExrPath, -1)
-                print("here1 after")
+                try:
+                    inputExr = cv.imread(inputExrPath, -1)
+                except Exception as e:
+                    raise Exception("here1")
                 exrWidth = inputExr.shape[1]
                 intrinsicsScaled = Utils.scaleIntrinsics(depthIntrinsics, exrWidth)
 
@@ -144,9 +145,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
     # Compare the calculated depth and tof depth of centered pixel
     # Make sure that that center pixel has an high confidence both calculated and measured
     def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs):
-        print("here2 before")
-        depthsexr = cv.imread(inputExrPath, -1)
-        print("here2 after")
+        try:
+            depthsexr = cv.imread(inputExrPath, -1)
+        except Exception as e:
+            raise Exception("here2")
         depthstof = self.readInputDepth(inputTofPath)
         h, w = depthsexr.shape
         depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
@@ -171,9 +173,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
         outputExr = np.zeros((h, w), np.float32)
 
         if inputExrPath:
-            print("here3 before")
-            inputExr = cv.imread(inputExrPath, -1)
-            print("here3 after")
+            try:
+                inputExr = cv.imread(inputExrPath, -1)
+            except Exception as e:
+                raise Exception("here3")
 
         for y in range(0, h):
             for x in range(0, w):
@@ -188,9 +191,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".png") or depthPath.endswith(".jpg"):
-            print("here4 before")
-            return cv.imread(depthPath, -1)
-            print("here4 after")
+            try:
+                return cv.imread(depthPath, -1)
+            except Exception as e:
+                raise Exception("here4")
         else:
             raise Exception("only .png or .jpg format is supported")
 
