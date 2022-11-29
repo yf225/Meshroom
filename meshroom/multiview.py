@@ -380,7 +380,7 @@ def sfmPipeline(graph):
     ]
 
 
-def mvsPipeline(graph, sfm=None):
+def mvsPipeline(graph, sfm=None, cameraInit=None):
     """
     Instantiate a MVS pipeline inside 'graph'.
 
@@ -394,6 +394,8 @@ def mvsPipeline(graph, sfm=None):
     if sfm and not sfm.nodeType == "StructureFromMotion":
         raise ValueError("Invalid node type. Expected StructureFromMotion, got {}.".format(sfm.nodeType))
 
+    assert cameraInit and cameraInit.nodeType == "CameraInit"
+
     prepareDenseScene = graph.addNewNode('PrepareDenseScene',
                                          input=sfm.output if sfm else "")
     depthMap = graph.addNewNode('DepthMap',
@@ -401,6 +403,7 @@ def mvsPipeline(graph, sfm=None):
                                 imagesFolder=prepareDenseScene.output)
     depthMapImport = graph.addNewNode('DepthMapImport',
                                 input=sfm.outputViewsAndPoses,
+                                rgbIntrinsics=cameraInit.intrinsics,
                                 depthMapsFolder=depthMap.output)
     depthMapFilter = graph.addNewNode('DepthMapFilter',
                                       input=depthMapImport.input,

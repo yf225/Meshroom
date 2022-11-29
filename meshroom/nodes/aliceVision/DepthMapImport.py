@@ -47,23 +47,31 @@ That script expect the depth image to be aside the rgb image, and have similar n
             uid=[0],
             advanced=True,
         ),
+        # desc.StringParam(
+        #     name='depthIntrinsics',
+        #     label='Depth Image Intrinsics',
+        #     description='The depth image intrinsics are expected to be similar than rgb image. If unset will use assume than rgbIntrinsics==depthIntrinsics',
+        #     value='{"w": 576,"h": 768, "fx": 178.8240, "fy": 179.2912, "cx": 119.8185, "cy": 90.5689}',  # iPhone 13 Pro lidar intrinsics
+        #     uid=[0],
+        #     advanced=True,
+        # ),
         desc.StringParam(
-            name='depthIntrinsics',
-            label='Depth Image Intrinsics',
-            description='The depth image intrinsics are expected to be similar than rgb image. If unset will use assume than rgbIntrinsics==depthIntrinsics',
-            value=None, #'{"w": 576,"h": 768, "fx": 178.8240, "fy": 179.2912, "cx": 119.8185, "cy": 90.5689}',  # iPhone 13 Pro lidar intrinsics
+            name='rgbIntrinsics',
+            label='RGB Image Intrinsics',
+            description='',
+            value=None,
             uid=[0],
             advanced=True,
         ),
-        desc.FloatParam(
-            name='ratio',
-            label='Ratio/Scale',
-            description='Ratio between Sfm coordinate and imported depth. If 0, we will estimate it comparating center point of 1st image. Usually imported depth are in meters/millimeters',
-            value=0.0,
-            range=(0.0, 10.0, 0.1),  # I dont want it, but thats mandatory
-            uid=[0],
-            advanced=True,
-        ),
+        # desc.FloatParam(
+        #     name='ratio',
+        #     label='Ratio/Scale',
+        #     description='Ratio between Sfm coordinate and imported depth. If 0, we will estimate it comparating center point of 1st image. Usually imported depth are in meters/millimeters',
+        #     value=0.0,
+        #     range=(0.0, 10.0, 0.1),  # I dont want it, but thats mandatory
+        #     uid=[0],
+        #     advanced=True,
+        # ),
         desc.ChoiceParam(
             name='verboseLevel',
             label='Verbose Level',
@@ -94,12 +102,13 @@ That script expect the depth image to be aside the rgb image, and have similar n
             inputCameras = chunk.node.input.value
             inputDepthMapsFolder = chunk.node.depthMapsFolder.value
             outputDepthMapsFolder = chunk.node.output.value
-            depthIntrinsics = json.loads(chunk.node.depthIntrinsics.value)
+            depthIntrinsics = {"w": 576, "h": 768}  # iPhone 13 Pro lidar depth map values
+            rgbIntrinsics = chunk.node.rgbIntrinsics.value
             rgbImageSuffix = chunk.node.rgbImageSuffix.value
             depthImageSuffix = chunk.node.depthImageSuffix.value
             ratio = chunk.node.ratio.value
 
-            self.importDepthMaps(chunk, inputCameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbImageSuffix, depthImageSuffix, ratio)
+            self.importDepthMaps(chunk, inputCameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbIntrinsics, rgbImageSuffix, depthImageSuffix, ratio)
 
             chunk.logger.info("ended")
         except Exception as e:
@@ -112,11 +121,14 @@ That script expect the depth image to be aside the rgb image, and have similar n
         self._stopped = True
 
 
-    def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbImageSuffix, depthImageSuffix, ratio = 0.0):
+    def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbIntrinsics, rgbImageSuffix, depthImageSuffix):  #, ratio = 0.0):
+        chunk.logger.info(f"depthIntrinsics: {depthIntrinsics}")
+        chunk.logger.info(f"rgbIntrinsics: {rgbIntrinsics}")
+
         f = open(cameras,)
         data = json.load(f)
 
-        intrinsicsScaled = None
+        depthIntrinsics_scaled = None
 
         for view in data["views"]:
             if self._stopped: raise RuntimeError("User asked to stop")
@@ -128,16 +140,17 @@ That script expect the depth image to be aside the rgb image, and have similar n
             os.path.isfile(inputExrPath)
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
 
-            if not intrinsicsScaled:
+            if not depthIntrinsics_scaled:
                 inputExr = cv.imread(inputExrPath, -1)
                 exrWidth = inputExr.shape[1]
-                intrinsicsScaled = Utils.scaleIntrinsics(depthIntrinsics, exrWidth)
+                depthIntrinsics_scaled = Utils.scaleIntrinsics(depthIntrinsics, rgbIntrinsics)
+                chunk.logger.info(f"depthIntrinsics_scaled: {depthIntrinsics_scaled}")
 
-            if not ratio:
-                ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, intrinsicsScaled)
-                chunk.logger.info("calculated ratio:" + str(ratio))
+            # if not ratio:
+            ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled)
+            chunk.logger.info("calculated ratio for Exr vs. Tof:" + str(ratio))
 
-            self.writeExr(inputTofPath, intrinsicsScaled, inputExrPath, outputExrPath, ratio)
+            self.writeExr(inputTofPath, depthIntrinsics_scaled, inputExrPath, outputExrPath, ratio)
             chunk.logger.info("wrote " + outputExrPath)
 
     # Compare the calculated depth and tof depth of centered pixel
@@ -188,12 +201,12 @@ That script expect the depth image to be aside the rgb image, and have similar n
             raise Exception("only .depth_png or .depth_jpg format is supported")
 
 class Utils:
-    def scaleIntrinsics(intrinsics, w):
-        ratio = w / intrinsics["w"]
-        intrinsics2 = {}
-        for k in intrinsics:
-            intrinsics2[k] = int(intrinsics[k] * ratio)
-        return intrinsics2
+    def scaleIntrinsics(depthIntrinsics, rgbIntrinsics):
+        ratio = rgbIntrinsics["w"] / depthIntrinsics["w"]
+        depthIntrinsics_scaled = {}
+        for k in rgbIntrinsics:
+            depthIntrinsics_scaled[k] = int(rgbIntrinsics[k] / ratio)
+        return depthIntrinsics_scaled
 
     def pinholeDistanceToZ(d, x, y, intrsc):
         w, h, fx, fy, cx, cy = intrsc["w"], intrsc["h"], intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
