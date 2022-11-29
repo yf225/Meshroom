@@ -115,9 +115,13 @@ That script expect the depth image to be aside the rgb image, and have similar n
     def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbImageSuffix, depthImageSuffix, ratio = 0.0):
         try:
             f = open(cameras, )
+        except Exception as e:
+            raise Exception("here01")
+        try:
             data = json.load(f)
         except Exception as e:
-            raise Exception("here0")
+            raise Exception("here02")
+
         intrinsicsScaled = None
 
         for view in data["views"]:
