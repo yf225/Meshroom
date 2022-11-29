@@ -103,6 +103,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
             inputDepthMapsFolder = chunk.node.depthMapsFolder.value
             outputDepthMapsFolder = chunk.node.output.value
             depthIntrinsics = {"w": 576, "h": 768}  # iPhone 13 Pro lidar depth map values
+
+            chunk.logger.info(f"chunk.node.rgbIntrinsics: {chunk.node.rgbIntrinsics}")
+            chunk.logger.info(f"chunk.node.rgbIntrinsics.value: {chunk.node.rgbIntrinsics.value}")
+
             rgbIntrinsics = chunk.node.rgbIntrinsics.value
             rgbImageSuffix = chunk.node.rgbImageSuffix.value
             depthImageSuffix = chunk.node.depthImageSuffix.value
