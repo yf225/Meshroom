@@ -28,7 +28,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             name="depthMapsFolder",
             label="DepthMaps Folder",
             description="Input depth maps folder to calculate the scale between calculated depthMaps and imported depthMaps",
-            value="/fsx/users/willfeng/3d_recon/images_jpg_depth/steamer",
+            value="",
             uid=[0],
         ),
         desc.StringParam(
@@ -50,8 +50,8 @@ That script expect the depth image to be aside the rgb image, and have similar n
         desc.StringParam(
             name='depthIntrinsics',
             label='Depth Image Intrinsics',
-            description='The depth image intrinsics are expected to be similar than rgb image. If unset will use assume than rgbIntrinsics==depthIntrincis',
-            value='{"w": 240,"h": 180,"fx": 178.8240,"fy": 179.2912,"cx": 119.8185,"cy": 90.5689}', #Honor View 20 intrinsics
+            description='The depth image intrinsics are expected to be similar than rgb image. If unset will use assume than rgbIntrinsics==depthIntrinsics',
+            value=None, #'{"w": 576,"h": 768, "fx": 178.8240, "fy": 179.2912, "cx": 119.8185, "cy": 90.5689}',  # iPhone 13 Pro lidar intrinsics
             uid=[0],
             advanced=True,
         ),
@@ -59,8 +59,8 @@ That script expect the depth image to be aside the rgb image, and have similar n
             name='ratio',
             label='Ratio/Scale',
             description='Ratio between Sfm coordinate and imported depth. If 0, we will estimate it comparating center point of 1st image. Usually imported depth are in meters/millimeters',
-            value=0,
-            range=(0.0, 10.0, 0.1), #I dont want it, but thats mandatory
+            value=0.0,
+            range=(0.0, 10.0, 0.1),  # I dont want it, but thats mandatory
             uid=[0],
             advanced=True,
         ),
@@ -113,23 +113,12 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
 
     def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbImageSuffix, depthImageSuffix, ratio = 0.0):
-        try:
-            f = open(cameras,)
-        except Exception as e:
-            raise Exception("here01")
-        try:
-            data = json.load(f)
-        except Exception as e:
-            raise Exception(f"here02: cameras: {cameras}, f: {f}: str(e): {str(e)}")
-
-        # from meshroom.nodes.aliceVision.CameraInit import readSfMData
-        # views, intrinsics = readSfMData(cameras)
-        # chunk.logger.info(f"views: {views}, intrinsics: {intrinsics}")
+        f = open(cameras,)
+        data = json.load(f)
 
         intrinsicsScaled = None
 
         for view in data["views"]:
-        # for view in views:
             if self._stopped: raise RuntimeError("User asked to stop")
             rgb = view["path"]
             intputTofPath = rgb.replace(rgbImageSuffix, depthImageSuffix)  # add type png, jpg or depth16
@@ -140,10 +129,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
 
             if not intrinsicsScaled:
-                try:
-                    inputExr = cv.imread(inputExrPath, -1)
-                except Exception as e:
-                    raise Exception("here1")
+                inputExr = cv.imread(inputExrPath, -1)
                 exrWidth = inputExr.shape[1]
                 intrinsicsScaled = Utils.scaleIntrinsics(depthIntrinsics, exrWidth)
 
@@ -157,10 +143,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
     # Compare the calculated depth and tof depth of centered pixel
     # Make sure that that center pixel has an high confidence both calculated and measured
     def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs):
-        try:
-            depthsexr = cv.imread(inputExrPath, -1)
-        except Exception as e:
-            raise Exception("here2")
+        depthsexr = cv.imread(inputExrPath, -1)
         depthstof = self.readInputDepth(inputTofPath)
         h, w = depthsexr.shape
         depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
@@ -185,10 +168,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         outputExr = np.zeros((h, w), np.float32)
 
         if inputExrPath:
-            try:
-                inputExr = cv.imread(inputExrPath, -1)
-            except Exception as e:
-                raise Exception("here3")
+            inputExr = cv.imread(inputExrPath, -1)
 
         for y in range(0, h):
             for x in range(0, w):
@@ -203,10 +183,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".png") or depthPath.endswith(".jpg"):
-            try:
-                return cv.imread(depthPath, -1)
-            except Exception as e:
-                raise Exception("here4")
+            return cv.imread(depthPath, -1)
         else:
             raise Exception("only .png or .jpg format is supported")
 
