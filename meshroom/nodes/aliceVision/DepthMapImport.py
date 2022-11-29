@@ -104,15 +104,15 @@ That script expect the depth image to be aside the rgb image, and have similar n
             outputDepthMapsFolder = chunk.node.output.value
             depthIntrinsics = {"w": 576, "h": 768}  # iPhone 13 Pro lidar depth map values
 
-            chunk.logger.info(f"chunk.node.rgbIntrinsics: {chunk.node.rgbIntrinsics}")
-            chunk.logger.info(f"chunk.node.rgbIntrinsics.value: {chunk.node.rgbIntrinsics.value}")
+            # chunk.logger.info(f"chunk.node.rgbIntrinsics: {chunk.node.rgbIntrinsics}")
+            # chunk.logger.info(f"chunk.node.rgbIntrinsics.value: {chunk.node.rgbIntrinsics.value}")
 
             rgbIntrinsics = chunk.node.rgbIntrinsics.value
             rgbImageSuffix = chunk.node.rgbImageSuffix.value
             depthImageSuffix = chunk.node.depthImageSuffix.value
-            ratio = chunk.node.ratio.value
+            # ratio = chunk.node.ratio.value
 
-            self.importDepthMaps(chunk, inputCameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbIntrinsics, rgbImageSuffix, depthImageSuffix, ratio)
+            self.importDepthMaps(chunk, inputCameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbIntrinsics, rgbImageSuffix, depthImageSuffix) # , ratio)
 
             chunk.logger.info("ended")
         except Exception as e:
