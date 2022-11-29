@@ -120,7 +120,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         for view in data["views"]:
             if self._stopped: raise RuntimeError("User asked to stop")
             rgb = view["path"]
-            intputTofPath = rgb.replace(rgbImageSuffix, depthImageSuffix)  # add type png or depth16
+            intputTofPath = rgb.replace(rgbImageSuffix, depthImageSuffix)  # add type png, jpg or depth16
             if not os.path.isfile(intputTofPath): raise Exception("Depth file not found", intputTofPath, "check if the file exists or if the rgbImageSuffix and depthImageSuffix are properly set")
             inputExrPath = inputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
             if not os.path.isfile(inputExrPath): raise Exception("Input Exr not found", inputExrPath)
@@ -128,7 +128,9 @@ That script expect the depth image to be aside the rgb image, and have similar n
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
 
             if not intrinsicsScaled:
+                print("here1 before")
                 inputExr = cv.imread(inputExrPath, -1)
+                print("here1 after")
                 exrWidth = inputExr.shape[1]
                 intrinsicsScaled = Utils.scaleIntrinsics(depthIntrinsics, exrWidth)
 
@@ -142,7 +144,9 @@ That script expect the depth image to be aside the rgb image, and have similar n
     # Compare the calculated depth and tof depth of centered pixel
     # Make sure that that center pixel has an high confidence both calculated and measured
     def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs):
+        print("here2 before")
         depthsexr = cv.imread(inputExrPath, -1)
+        print("here2 after")
         depthstof = self.readInputDepth(inputTofPath)
         h, w = depthsexr.shape
         depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
@@ -167,7 +171,9 @@ That script expect the depth image to be aside the rgb image, and have similar n
         outputExr = np.zeros((h, w), np.float32)
 
         if inputExrPath:
+            print("here3 before")
             inputExr = cv.imread(inputExrPath, -1)
+            print("here3 after")
 
         for y in range(0, h):
             for x in range(0, w):
@@ -182,7 +188,9 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".png") or depthPath.endswith(".jpg"):
+            print("here4 before")
             return cv.imread(depthPath, -1)
+            print("here4 after")
         else:
             raise Exception("only .png or .jpg format is supported")
 
