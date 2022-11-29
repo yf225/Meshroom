@@ -114,7 +114,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbImageSuffix, depthImageSuffix, ratio = 0.0):
         try:
-            f = open(cameras, )
+            f = open(cameras, 'rb')
         except Exception as e:
             raise Exception("here01")
         try:
