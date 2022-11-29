@@ -13,7 +13,7 @@ class DepthMapImport(desc.CommandLineNode):
     category = 'Dense Reconstruction'
     documentation = '''
 Import depth maps (Kinect, Android Tof, ....). Thoses imported depth maps can override calculated depthmaps or enhance them.
-That script expect the depth image to be aside the rgb image, and have similar name (eg 0000234_image.jpg 0000234_depth16.bin)
+That script expect the depth image to be aside the rgb image, and have similar name (eg 0000234_image.jpg -> 0000234_depth16.bin or 0000234_image.depth_jpg)
 '''
 
     inputs = [
@@ -43,7 +43,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             name='depthImageSuffix',
             label='Depth Image suffix',
             description='Used to guess the depthImage filename using the rgbImage filename: rgbPath.replace(rgbImageSuffix, depthImageSuffix)',
-            value="-depth.jpg",
+            value=".depth_jpg",
             uid=[0],
             advanced=True,
         ),
@@ -120,9 +120,9 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
         for view in data["views"]:
             if self._stopped: raise RuntimeError("User asked to stop")
-            rgb = view["path"]
-            intputTofPath = rgb.replace(rgbImageSuffix, depthImageSuffix)  # add type png, jpg or depth16
-            if not os.path.isfile(intputTofPath): raise Exception("Depth file not found", intputTofPath, "check if the file exists or if the rgbImageSuffix and depthImageSuffix are properly set")
+            rgb_image_path = view["path"]
+            inputTofPath = rgb_image_path.replace(rgbImageSuffix, depthImageSuffix)  # add type png, jpg or depth16
+            if not os.path.isfile(inputTofPath): raise Exception("Depth file not found", inputTofPath, "check if the file exists or if the rgbImageSuffix and depthImageSuffix are properly set")
             inputExrPath = inputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
             if not os.path.isfile(inputExrPath): raise Exception("Input Exr not found", inputExrPath)
             os.path.isfile(inputExrPath)
@@ -134,10 +134,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
                 intrinsicsScaled = Utils.scaleIntrinsics(depthIntrinsics, exrWidth)
 
             if not ratio:
-                ratio = self.calculateRatioExrvsTof(inputExrPath, intputTofPath, intrinsicsScaled)
+                ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, intrinsicsScaled)
                 chunk.logger.info("calculated ratio:" + str(ratio))
 
-            self.writeExr(intputTofPath, intrinsicsScaled, inputExrPath, outputExrPath, ratio)
+            self.writeExr(inputTofPath, intrinsicsScaled, inputExrPath, outputExrPath, ratio)
             chunk.logger.info("wrote " + outputExrPath)
 
     # Compare the calculated depth and tof depth of centered pixel
@@ -182,10 +182,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
         cv.imwrite(outputExrPath, outputExr)
 
     def readInputDepth(self, depthPath):
-        if depthPath.endswith(".png") or depthPath.endswith(".jpg"):
+        if depthPath.endswith(".depth_png") or depthPath.endswith(".depth_jpg"):
             return cv.imread(depthPath, -1)
         else:
-            raise Exception("only .png or .jpg format is supported")
+            raise Exception("only .depth_png or .depth_jpg format is supported")
 
 class Utils:
     def scaleIntrinsics(intrinsics, w):
