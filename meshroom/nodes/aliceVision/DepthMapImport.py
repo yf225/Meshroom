@@ -206,7 +206,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         else:
             raise Exception("only .depth_png or .depth_jpg format is supported")
 
-class Utils:
+# class Utils:
     # def scaleIntrinsics(depthIntrinsics, rgbIntrinsics):
     #     ratio = rgbIntrinsics._objects[0]._value._objects["width"]._value / depthIntrinsics["w"]
     #     depthIntrinsics_scaled = {}
