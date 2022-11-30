@@ -251,6 +251,13 @@ class Utils:
         chunk.logger.info("here81")
         fx, fy, cx, cy = intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
         chunk.logger.info("here82")
+        chunk.logger.info(f"x: {x}")
+        chunk.logger.info(f"y: {y}")
+        chunk.logger.info(f"cx: {cx}")
+        chunk.logger.info(f"cy: {cy}")
+        chunk.logger.info(f"z3: {z3}")
+        chunk.logger.info(f"fx: {fx}")
+        chunk.logger.info(f"fy: {fy}")
         pcx = x - cx
         chunk.logger.info("here83")
         pcy = y - cy
