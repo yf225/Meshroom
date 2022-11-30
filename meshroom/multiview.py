@@ -404,7 +404,8 @@ def mvsPipeline(graph, sfm=None, cameraInit=None):
     depthMapImport = graph.addNewNode('DepthMapImport',
                                 input=sfm.outputViewsAndPoses,
                                 rgbIntrinsics=cameraInit.intrinsics,
-                                depthMapsFolder=depthMap.output)
+                                depthMapsFolder=depthMap.output,
+                                output=depthMap.output)
     depthMapFilter = graph.addNewNode('DepthMapFilter',
                                       input=depthMapImport.input,
                                       depthMapsFolder=depthMapImport.output)
