@@ -259,6 +259,9 @@ class Utils:
         chunk.logger.info("here85")
         y3 = pcy * z3 / fy
         chunk.logger.info("here86")
+        chunk.logger.info(f"x3: {x3}")
+        chunk.logger.info(f"y3: {y3}")
+        chunk.logger.info(f"z3: {z3}")
         out = math.hypot(x3, y3, z3)
         chunk.logger.info("here87")
         return out
