@@ -144,6 +144,8 @@ That script expect the depth image to be aside the rgb image, and have similar n
         depthIntrinsics_scaled = None
 
         for view in data["views"]:
+            for k, v in view:
+                chunk.logger.info(f"{k}: {v}")
             if self._stopped: raise RuntimeError("User asked to stop")
             rgb_image_path = view["path"]
             inputTofPath = rgb_image_path.replace(rgbImageSuffix, depthImageSuffix)  # add type png, jpg or depth16
