@@ -227,7 +227,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".depth_png") or depthPath.endswith(".depth_jpg"):
-            return cv.imread(depthPath, -1)
+            return cv.imread(depthPath, -1)[:,:,0]
         else:
             raise Exception("only .depth_png or .depth_jpg format is supported")
 
