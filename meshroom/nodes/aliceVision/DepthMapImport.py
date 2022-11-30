@@ -207,29 +207,29 @@ That script expect the depth image to be aside the rgb image, and have similar n
             raise Exception("only .depth_png or .depth_jpg format is supported")
 
 # class Utils:
-    # def scaleIntrinsics(depthIntrinsics, rgbIntrinsics):
-    #     ratio = rgbIntrinsics._objects[0]._value._objects["width"]._value / depthIntrinsics["w"]
-    #     depthIntrinsics_scaled = {}
-    #     depthIntrinsics_scaled["w"] = depthIntrinsics["w"]
-    #     depthIntrinsics_scaled["h"] = depthIntrinsics["h"]
-    #     depthIntrinsics_scaled["fx"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
-    #     depthIntrinsics_scaled["fy"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
-    #     depthIntrinsics_scaled["cx"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["x"]._value / ratio
-    #     depthIntrinsics_scaled["cy"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["y"]._value / ratio
-    #     return depthIntrinsics_scaled
+#     def scaleIntrinsics(depthIntrinsics, rgbIntrinsics):
+#         ratio = rgbIntrinsics._objects[0]._value._objects["width"]._value / depthIntrinsics["w"]
+#         depthIntrinsics_scaled = {}
+#         depthIntrinsics_scaled["w"] = depthIntrinsics["w"]
+#         depthIntrinsics_scaled["h"] = depthIntrinsics["h"]
+#         depthIntrinsics_scaled["fx"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
+#         depthIntrinsics_scaled["fy"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
+#         depthIntrinsics_scaled["cx"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["x"]._value / ratio
+#         depthIntrinsics_scaled["cy"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["y"]._value / ratio
+#         return depthIntrinsics_scaled
 
-    # def pinholeDistanceToZ(d, x, y, intrsc):
-    #     w, h, fx, fy, cx, cy = intrsc["w"], intrsc["h"], intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
-    #     pcx, pcy = x - cx, y - cy
-    #     hypoxy = math.hypot(pcy, fx, pcx)
-    #     return fx * d / hypoxy
+#     def pinholeDistanceToZ(d, x, y, intrsc):
+#         w, h, fx, fy, cx, cy = intrsc["w"], intrsc["h"], intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
+#         pcx, pcy = x - cx, y - cy
+#         hypoxy = math.hypot(pcy, fx, pcx)
+#         return fx * d / hypoxy
 
-    # def zToPinholeDistance(z3, x, y, intrsc, chunk):
-    #     # x3,y3,z3 : 3d point; x,y: 2d point
-    #     fx, fy, cx, cy = intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
-    #     pcx = x - cx
-    #     pcy = y - cy
-    #     x3 = pcx * z3 / fx
-    #     y3 = pcy * z3 / fy
-    #     out = math.hypot(x3, y3, z3)
-    #     return out
+#     def zToPinholeDistance(z3, x, y, intrsc, chunk):
+#         # x3,y3,z3 : 3d point; x,y: 2d point
+#         fx, fy, cx, cy = intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
+#         pcx = x - cx
+#         pcy = y - cy
+#         x3 = pcx * z3 / fx
+#         y3 = pcy * z3 / fy
+#         out = math.hypot(x3, y3, z3)
+#         return out
