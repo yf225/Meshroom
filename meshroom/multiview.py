@@ -425,7 +425,7 @@ def mvsPipeline(graph, sfm=None, cameraInit=None):
         prepareDenseScene,
         depthMap,
         depthMapImport,
-        depthMapFilter,
+        # depthMapFilter,
         meshing,
         meshFiltering,
         texturing
