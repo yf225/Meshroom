@@ -183,31 +183,44 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     # intrinsics sized to output exr
     def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio):
+        chunk.logger.info("here1")
         depths = self.readInputDepth(inputTofPath)
+        chunk.logger.info("here2")
 
         # fx and fy are the focal lengths, cx, cy are the camera principal point.
         #   focalLength = (pxFocalLength / width) * sensorWidth
         w, h, fx, fy, cx, cy = intrscs["w"], intrscs["h"], intrscs["fx"], intrscs["fy"], intrscs["cx"], intrscs["cy"]
 
+        chunk.logger.info("here3")
         if depths.shape[1] != w:
             depths = cv.resize(depths, (w, h), interpolation=cv.INTER_NEAREST)
             # confidences = cv.resize(confidences, (w, h), interpolation=cv.INTER_NEAREST)
 
+        chunk.logger.info("here4")
         outputExr = np.zeros((h, w), np.float32)
+        chunk.logger.info("here5")
 
         if inputExrPath:
             inputExr = cv.imread(inputExrPath, -1)
 
+        chunk.logger.info("here6")
+
         for y in range(0, h):
             for x in range(0, w):
                 d = inputExr[y, x]
+                chunk.logger.info("here7")
                 if d < 0:
                     z3 = depths[y, x] / 1000 * ratio
+                    chunk.logger.info("here8")
                     d = Utils.zToPinholeDistance(z3, x, y, intrscs)
+                    chunk.logger.info("here9")
 
                 outputExr[y, x] = d
+                chunk.logger.info("here10")
 
+        chunk.logger.info("here11")
         cv.imwrite(outputExrPath, outputExr)
+        chunk.logger.info("here12")
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".depth_png") or depthPath.endswith(".depth_jpg"):
@@ -221,10 +234,10 @@ class Utils:
         depthIntrinsics_scaled = {}
         depthIntrinsics_scaled["w"] = depthIntrinsics["w"]
         depthIntrinsics_scaled["h"] = depthIntrinsics["h"]
-        depthIntrinsics_scaled["fx"] = int(rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio)
-        depthIntrinsics_scaled["fy"] = int(rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio)
-        depthIntrinsics_scaled["cx"] = int(rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["x"]._value / ratio)
-        depthIntrinsics_scaled["cy"] = int(rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["y"]._value / ratio)
+        depthIntrinsics_scaled["fx"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
+        depthIntrinsics_scaled["fy"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
+        depthIntrinsics_scaled["cx"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["x"]._value / ratio
+        depthIntrinsics_scaled["cy"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["y"]._value / ratio
         return depthIntrinsics_scaled
 
     def pinholeDistanceToZ(d, x, y, intrsc):
