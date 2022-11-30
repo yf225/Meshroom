@@ -139,68 +139,42 @@ That script expect the depth image to be aside the rgb image, and have similar n
             os.path.isfile(inputExrPath)
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
 
-            """
-inputExr = OpenEXR.InputFile(inputExrPath)
-
-out = OpenEXR.OutputFile(outputExrPath, inputExr.header())
-out.writePixels({'R' : Rs, 'G' : Gs, 'B' : Gs })
-out.close()
-
-
-
-def writeEXR(img, file):
-    try:
-        img = np.squeeze(img)
-        sz = img.shape
-        header = OpenEXR.Header(sz[1], sz[0])
-        half_chan = Imath.Channel(Imath.PixelType(Imath.PixelType.HALF))
-        header['channels'] = dict([(c, half_chan) for c in "RGB"])
-        out = OpenEXR.OutputFile(file, header)
-        R = (img[:,:,0]).astype(np.float16).tostring()
-        G = (img[:,:,1]).astype(np.float16).tostring()
-        B = (img[:,:,2]).astype(np.float16).tostring()
-        out.writePixels({'R' : R, 'G' : G, 'B' : B})
-        out.close()
-    except Exception as e:
-        raise IOException("Failed writing EXR: %s"%e)
-            """
-
             # if not depthIntrinsics_scaled:
             #     inputExr = cv.imread(inputExrPath, -1)
             #     exrWidth = inputExr.shape[1]
-            #     chunk.logger.info(f"exrWidth: {exrWidth}")
             #     depthIntrinsics_scaled = Utils.scaleIntrinsics(depthIntrinsics, rgbIntrinsics)
 
             # if not ratio:
-            # ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled, chunk)
-            ratio = 1.0
-            chunk.logger.info("calculated ratio for Exr vs. Tof:" + str(ratio))
+            ratioExrvsTof = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, chunk)
+            chunk.logger.info("calculated ratio for Exr vs. Tof:" + str(ratioExrvsTof))
 
-            self.writeExr(inputTofPath, depthIntrinsics_scaled, inputExrPath, outputExrPath, ratio, chunk)
+            self.writeExr(inputTofPath, depthIntrinsics["w"], depthIntrinsics["h"], inputExrPath, outputExrPath, ratioExrvsTof, chunk)
             chunk.logger.info("wrote " + outputExrPath)
 
-    # # Compare the calculated depth and tof depth of centered pixel
-    # # Make sure that that center pixel has an high confidence both calculated and measured
-    # def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs, chunk):
-    #     depthsexr = cv.imread(inputExrPath, -1)
-    #     depthstof = self.readInputDepth(inputTofPath)
-    #     h, w = depthsexr.shape
-    #     depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
+    # Compare the calculated depth and tof depth of centered pixel
+    # Make sure that that center pixel has an high confidence both calculated and measured
+    def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, chunk):
+        depthsexr = cv.imread(inputExrPath, -1)
+        depthstof = self.readInputDepth(inputTofPath)
+        h, w = depthsexr.shape
+        depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
 
-    #     y, x = (int(h / 2), int(w / 2))  # best pixel to compare is centered one (distance to pinhole == z, intrinsics has no impact)
-    #     depthexr_distancepinhole = depthsexr[y][x]
-    #     depthexr_z = Utils.pinholeDistanceToZ(depthexr_distancepinhole, x, y, intrscs) # it must be exr intrinsics, useless if it's center
-    #     depthtof_z = depthstof[y][x] / 1000
-    #     ratio = depthexr_z / depthtof_z
-    #     return ratio
+        y, x = (int(h / 2), int(w / 2))  # best pixel to compare is centered one (distance to pinhole == z, intrinsics has no impact)
+        depthexr_distancepinhole = depthsexr[y][x]
+        depthexr_z = depthexr_distancepinhole  # Utils.pinholeDistanceToZ(depthexr_distancepinhole, x, y, intrscs) # it must be exr intrinsics, useless if it's center
+        depthtof_z = depthstof[y][x]
+        ratioExrvsTof = depthexr_z / depthtof_z
+        return ratioExrvsTof
 
     # intrinsics sized to output exr
-    def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio, chunk):
+    def writeExr(self, inputTofPath, depth_image_width, depth_image_height, inputExrPath, outputExrPath, ratioExrvsTof, chunk):
         depths = self.readInputDepth(inputTofPath)
 
         # fx and fy are the focal lengths, cx, cy are the camera principal point.
         # some formula: focalLength = (pxFocalLength / width) * sensorWidth
-        w, h, fx, fy, cx, cy = intrscs["w"], intrscs["h"], intrscs["fx"], intrscs["fy"], intrscs["cx"], intrscs["cy"]
+        # w, h, fx, fy, cx, cy = intrscs["w"], intrscs["h"], intrscs["fx"], intrscs["fy"], intrscs["cx"], intrscs["cy"]
+        w = depth_image_width
+        h = depth_image_height
 
         if depths.shape[1] != w:
             depths = cv.resize(depths, (w, h), interpolation=cv.INTER_NEAREST)
@@ -215,10 +189,11 @@ def writeEXR(img, file):
             for x in range(0, w):
                 # d = inputExr_np[y, x]
                 # if d < 0:
-                #     z3 = depths[y, x] / 1000 * ratio
+                #     z3 = depths[y, x] * ratioExrvsTof
                 #     d = Utils.zToPinholeDistance(z3, x, y, intrscs, chunk)
                 # outputExr_np[y, x] = d
-                outputExr_np[y, x] = depths[y, x]  # FIXME: only using imported depth image, not merging with calculated depth image
+                # FIXME: only using imported depth image, not merging with calculated depth image
+                outputExr_np[y, x] = depths[y, x] * ratioExrvsTof
 
         out = OpenEXR.OutputFile(outputExrPath, OpenEXR.InputFile(inputExrPath).header())
         px_val = outputExr_np.astype(np.float16).tostring()
