@@ -126,7 +126,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         chunk.logger.info(f"depthIntrinsics: {depthIntrinsics}")
         chunk.logger.info(f"rgbIntrinsics._objects: {rgbIntrinsics._objects}")
         for key in rgbIntrinsics._objects[0]._value._objects:
-            chunk.logger.info(f"key, rgbIntrinsics._objects[0]._value._objects: {key},{rgbIntrinsics._objects[0]._value._objects}")
+            chunk.logger.info(f"key, rgbIntrinsics._objects[0]._value._objects: {key},{rgbIntrinsics._objects[0]._value._objects[key]}")
         import pickle
         with open('/fsx/users/willfeng/3d_recon/Meshroom/rgbIntrinsics.pickle', 'wb') as f:
             pickle.dump(rgbIntrinsics._objects[0]._value._objects, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -178,6 +178,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
     def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio):
         depths = self.readInputDepth(inputTofPath)
 
+        # fx and fy are the focal lengths, cx, cy are the camera principal point.
         w, h, fx, fy, cx, cy = intrscs["w"], intrscs["h"], intrscs["fx"], intrscs["fy"], intrscs["cx"], intrscs["cy"]
 
         if depths.shape[1] != w:
