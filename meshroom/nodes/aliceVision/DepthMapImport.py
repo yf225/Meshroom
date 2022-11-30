@@ -6,6 +6,7 @@ import cv2 as cv
 import numpy as np
 import math
 import json
+import OpenEXR
 
 
 class DepthMapImport(desc.CommandLineNode):
@@ -102,7 +103,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             inputCameras = chunk.node.input.value
             inputDepthMapsFolder = chunk.node.depthMapsFolder.value
             outputDepthMapsFolder = chunk.node.output.value
-            depthIntrinsics = {"w": 576, "h": 768}  # iPhone 13 Pro lidar depth map values
+            depthIntrinsics = {"w": 576, "h": 768}  # FIXME: hardcoded iPhone 13 Pro lidar depth map values
 
             rgbIntrinsics = chunk.node.rgbIntrinsics.value
             rgbImageSuffix = chunk.node.rgbImageSuffix.value
@@ -139,57 +140,59 @@ That script expect the depth image to be aside the rgb image, and have similar n
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
 
             """
-file = OpenEXR.InputFile(sys.argv[1])
+inputExr = OpenEXR.InputFile(inputExrPath)
 
-# Compute the size
-dw = file.header()['dataWindow']
-sz = (dw.max.x - dw.min.x + 1, dw.max.y - dw.min.y + 1)
-
-# Read the three color channels as 32-bit floats
-FLOAT = Imath.PixelType(Imath.PixelType.FLOAT)
-(R,G,B) = [array.array('f', file.channel(Chan, FLOAT)).tolist() for Chan in ("R", "G", "B") ]
-
-# Normalize so that brightest sample is 1
-brightest = max(R + G + B)
-R = [ i / brightest for i in R ]
-G = [ i / brightest for i in G ]
-B = [ i / brightest for i in B ]
-
-# Convert to strings
-(Rs, Gs, Bs) = [ array.array('f', Chan).tostring() for Chan in (R, G, B) ]
-
-# Write the three color channels to the output file
-out = OpenEXR.OutputFile(sys.argv[2], OpenEXR.Header(sz[0], sz[1]))
+out = OpenEXR.OutputFile(outputExrPath, inputExr.header())
 out.writePixels({'R' : Rs, 'G' : Gs, 'B' : Gs })
+out.close()
+
+
+
+def writeEXR(img, file):
+    try:
+        img = np.squeeze(img)
+        sz = img.shape
+        header = OpenEXR.Header(sz[1], sz[0])
+        half_chan = Imath.Channel(Imath.PixelType(Imath.PixelType.HALF))
+        header['channels'] = dict([(c, half_chan) for c in "RGB"])
+        out = OpenEXR.OutputFile(file, header)
+        R = (img[:,:,0]).astype(np.float16).tostring()
+        G = (img[:,:,1]).astype(np.float16).tostring()
+        B = (img[:,:,2]).astype(np.float16).tostring()
+        out.writePixels({'R' : R, 'G' : G, 'B' : B})
+        out.close()
+    except Exception as e:
+        raise IOException("Failed writing EXR: %s"%e)
             """
 
-            if not depthIntrinsics_scaled:
-                inputExr = cv.imread(inputExrPath, -1)
-                exrWidth = inputExr.shape[1]
-                chunk.logger.info(f"exrWidth: {exrWidth}")
-                depthIntrinsics_scaled = Utils.scaleIntrinsics(depthIntrinsics, rgbIntrinsics)
+            # if not depthIntrinsics_scaled:
+            #     inputExr = cv.imread(inputExrPath, -1)
+            #     exrWidth = inputExr.shape[1]
+            #     chunk.logger.info(f"exrWidth: {exrWidth}")
+            #     depthIntrinsics_scaled = Utils.scaleIntrinsics(depthIntrinsics, rgbIntrinsics)
 
             # if not ratio:
-            ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled, chunk)
+            # ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled, chunk)
+            ratio = 1.0
             chunk.logger.info("calculated ratio for Exr vs. Tof:" + str(ratio))
 
             self.writeExr(inputTofPath, depthIntrinsics_scaled, inputExrPath, outputExrPath, ratio, chunk)
             chunk.logger.info("wrote " + outputExrPath)
 
-    # Compare the calculated depth and tof depth of centered pixel
-    # Make sure that that center pixel has an high confidence both calculated and measured
-    def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs, chunk):
-        depthsexr = cv.imread(inputExrPath, -1)
-        depthstof = self.readInputDepth(inputTofPath)
-        h, w = depthsexr.shape
-        depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
+    # # Compare the calculated depth and tof depth of centered pixel
+    # # Make sure that that center pixel has an high confidence both calculated and measured
+    # def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs, chunk):
+    #     depthsexr = cv.imread(inputExrPath, -1)
+    #     depthstof = self.readInputDepth(inputTofPath)
+    #     h, w = depthsexr.shape
+    #     depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
 
-        y, x = (int(h / 2), int(w / 2))  # best pixel to compare is centered one (distance to pinhole == z, intrinsics has no impact)
-        depthexr_distancepinhole = depthsexr[y][x]
-        depthexr_z = Utils.pinholeDistanceToZ(depthexr_distancepinhole, x, y, intrscs) # it must be exr intrinsics, useless if it's center
-        depthtof_z = depthstof[y][x] / 1000
-        ratio = depthexr_z / depthtof_z
-        return ratio
+    #     y, x = (int(h / 2), int(w / 2))  # best pixel to compare is centered one (distance to pinhole == z, intrinsics has no impact)
+    #     depthexr_distancepinhole = depthsexr[y][x]
+    #     depthexr_z = Utils.pinholeDistanceToZ(depthexr_distancepinhole, x, y, intrscs) # it must be exr intrinsics, useless if it's center
+    #     depthtof_z = depthstof[y][x] / 1000
+    #     ratio = depthexr_z / depthtof_z
+    #     return ratio
 
     # intrinsics sized to output exr
     def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio, chunk):
@@ -203,24 +206,24 @@ out.writePixels({'R' : Rs, 'G' : Gs, 'B' : Gs })
             depths = cv.resize(depths, (w, h), interpolation=cv.INTER_NEAREST)
             # confidences = cv.resize(confidences, (w, h), interpolation=cv.INTER_NEAREST)
 
-        outputExr = np.zeros((h, w), np.float32)
+        outputExr_np = np.zeros((h, w), np.float32)
 
-        if inputExrPath:
-            inputExr = cv.imread(inputExrPath, -1)
-
-
-
-
+        # if inputExrPath:
+        #     inputExr_np = cv.imread(inputExrPath, -1)
 
         for y in range(0, h):
             for x in range(0, w):
-                d = inputExr[y, x]
-                if d < 0:
-                    z3 = depths[y, x] / 1000 * ratio
-                    d = Utils.zToPinholeDistance(z3, x, y, intrscs, chunk)
-                outputExr[y, x] = d
+                # d = inputExr_np[y, x]
+                # if d < 0:
+                #     z3 = depths[y, x] / 1000 * ratio
+                #     d = Utils.zToPinholeDistance(z3, x, y, intrscs, chunk)
+                # outputExr_np[y, x] = d
+                outputExr_np[y, x] = depths[y, x]  # FIXME: only using imported depth image, not merging with calculated depth image
 
-        cv.imwrite(outputExrPath, outputExr)
+        out = OpenEXR.OutputFile(outputExrPath, OpenEXR.InputFile(inputExrPath).header())
+        px_val = outputExr_np.astype(np.float16).tostring()
+        out.writePixels({'R': px_val, 'G': px_val, 'B': px_val})
+        out.close()
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".depth_png") or depthPath.endswith(".depth_jpg"):
@@ -229,29 +232,29 @@ out.writePixels({'R' : Rs, 'G' : Gs, 'B' : Gs })
             raise Exception("only .depth_png or .depth_jpg format is supported")
 
 class Utils:
-    def scaleIntrinsics(depthIntrinsics, rgbIntrinsics):
-        ratio = rgbIntrinsics._objects[0]._value._objects["width"]._value / depthIntrinsics["w"]
-        depthIntrinsics_scaled = {}
-        depthIntrinsics_scaled["w"] = depthIntrinsics["w"]
-        depthIntrinsics_scaled["h"] = depthIntrinsics["h"]
-        depthIntrinsics_scaled["fx"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
-        depthIntrinsics_scaled["fy"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
-        depthIntrinsics_scaled["cx"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["x"]._value / ratio
-        depthIntrinsics_scaled["cy"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["y"]._value / ratio
-        return depthIntrinsics_scaled
+    # def scaleIntrinsics(depthIntrinsics, rgbIntrinsics):
+    #     ratio = rgbIntrinsics._objects[0]._value._objects["width"]._value / depthIntrinsics["w"]
+    #     depthIntrinsics_scaled = {}
+    #     depthIntrinsics_scaled["w"] = depthIntrinsics["w"]
+    #     depthIntrinsics_scaled["h"] = depthIntrinsics["h"]
+    #     depthIntrinsics_scaled["fx"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
+    #     depthIntrinsics_scaled["fy"] = rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio
+    #     depthIntrinsics_scaled["cx"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["x"]._value / ratio
+    #     depthIntrinsics_scaled["cy"] = rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["y"]._value / ratio
+    #     return depthIntrinsics_scaled
 
-    def pinholeDistanceToZ(d, x, y, intrsc):
-        w, h, fx, fy, cx, cy = intrsc["w"], intrsc["h"], intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
-        pcx, pcy = x - cx, y - cy
-        hypoxy = math.hypot(pcy, fx, pcx)
-        return fx * d / hypoxy
+    # def pinholeDistanceToZ(d, x, y, intrsc):
+    #     w, h, fx, fy, cx, cy = intrsc["w"], intrsc["h"], intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
+    #     pcx, pcy = x - cx, y - cy
+    #     hypoxy = math.hypot(pcy, fx, pcx)
+    #     return fx * d / hypoxy
 
-    def zToPinholeDistance(z3, x, y, intrsc, chunk):
-        # x3,y3,z3 : 3d point; x,y: 2d point
-        fx, fy, cx, cy = intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
-        pcx = x - cx
-        pcy = y - cy
-        x3 = pcx * z3 / fx
-        y3 = pcy * z3 / fy
-        out = math.hypot(x3, y3, z3)
-        return out
+    # def zToPinholeDistance(z3, x, y, intrsc, chunk):
+    #     # x3,y3,z3 : 3d point; x,y: 2d point
+    #     fx, fy, cx, cy = intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
+    #     pcx = x - cx
+    #     pcy = y - cy
+    #     x3 = pcx * z3 / fx
+    #     y3 = pcy * z3 / fy
+    #     out = math.hypot(x3, y3, z3)
+    #     return out
