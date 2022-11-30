@@ -160,7 +160,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
                 chunk.logger.info(f"depthIntrinsics_scaled: {depthIntrinsics_scaled}")
 
             # if not ratio:
-            ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled)
+            ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled, chunk)
             chunk.logger.info("calculated ratio for Exr vs. Tof:" + str(ratio))
 
             self.writeExr(inputTofPath, depthIntrinsics_scaled, inputExrPath, outputExrPath, ratio, chunk)
@@ -168,9 +168,11 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     # Compare the calculated depth and tof depth of centered pixel
     # Make sure that that center pixel has an high confidence both calculated and measured
-    def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs):
+    def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs, chunk):
         depthsexr = cv.imread(inputExrPath, -1)
         depthstof = self.readInputDepth(inputTofPath)
+        chunk.logger.info(f"depthsexr.shape: {depthsexr.shape}")
+        chunk.logger.info(f"depthstof.shape: {depthstof.shape}")
         h, w = depthsexr.shape
         depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
 
@@ -185,6 +187,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
     def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio, chunk):
         chunk.logger.info("here1")
         depths = self.readInputDepth(inputTofPath)
+        chunk.logger.info(f"depths.shape: {depths.shape}")
         chunk.logger.info("here2")
 
         # fx and fy are the focal lengths, cx, cy are the camera principal point.
