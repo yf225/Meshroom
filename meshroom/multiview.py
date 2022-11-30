@@ -412,9 +412,6 @@ def mvsPipeline(graph, sfm=None, cameraInit=None):
     meshing = graph.addNewNode('Meshing',
                                input=depthMapFilter.input,
                                depthMapsFolder=depthMapFilter.output)
-    # meshing = graph.addNewNode('Meshing',
-    #                            input=depthMapImport.input,
-    #                            depthMapsFolder=depthMapImport.output)
     meshFiltering = graph.addNewNode('MeshFiltering',
                                      inputMesh=meshing.outputMesh)
     texturing = graph.addNewNode('Texturing',
