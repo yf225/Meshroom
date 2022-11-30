@@ -138,9 +138,35 @@ That script expect the depth image to be aside the rgb image, and have similar n
             os.path.isfile(inputExrPath)
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
 
+            """
+file = OpenEXR.InputFile(sys.argv[1])
+
+# Compute the size
+dw = file.header()['dataWindow']
+sz = (dw.max.x - dw.min.x + 1, dw.max.y - dw.min.y + 1)
+
+# Read the three color channels as 32-bit floats
+FLOAT = Imath.PixelType(Imath.PixelType.FLOAT)
+(R,G,B) = [array.array('f', file.channel(Chan, FLOAT)).tolist() for Chan in ("R", "G", "B") ]
+
+# Normalize so that brightest sample is 1
+brightest = max(R + G + B)
+R = [ i / brightest for i in R ]
+G = [ i / brightest for i in G ]
+B = [ i / brightest for i in B ]
+
+# Convert to strings
+(Rs, Gs, Bs) = [ array.array('f', Chan).tostring() for Chan in (R, G, B) ]
+
+# Write the three color channels to the output file
+out = OpenEXR.OutputFile(sys.argv[2], OpenEXR.Header(sz[0], sz[1]))
+out.writePixels({'R' : Rs, 'G' : Gs, 'B' : Gs })
+            """
+
             if not depthIntrinsics_scaled:
                 inputExr = cv.imread(inputExrPath, -1)
                 exrWidth = inputExr.shape[1]
+                chunk.logger.info(f"exrWidth: {exrWidth}")
                 depthIntrinsics_scaled = Utils.scaleIntrinsics(depthIntrinsics, rgbIntrinsics)
 
             # if not ratio:
@@ -181,6 +207,10 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
         if inputExrPath:
             inputExr = cv.imread(inputExrPath, -1)
+
+
+
+
 
         for y in range(0, h):
             for x in range(0, w):
