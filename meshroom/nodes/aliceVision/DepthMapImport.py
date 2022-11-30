@@ -126,7 +126,8 @@ That script expect the depth image to be aside the rgb image, and have similar n
         chunk.logger.info(f"depthIntrinsics: {depthIntrinsics}")
         chunk.logger.info(f"rgbIntrinsics._objects: {rgbIntrinsics._objects}")
         import meshroom
-        for key, obj in rgbIntrinsics._objects[0]._value._objects:
+        for key in rgbIntrinsics._objects[0]._value._objects:
+            obj = rgbIntrinsics._objects[0]._value._objects[key]
             if type(obj) == meshroom.core.attribute.Attribute:
                 chunk.logger.info(f"{key}, {obj._value}")
             elif type(obj) == meshroom.core.attribute.GroupAttribute:
