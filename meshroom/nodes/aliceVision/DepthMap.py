@@ -41,7 +41,7 @@ Use a downscale factor of one (full-resolution) only if the quality of the input
             label='Downscale',
             description='Image downscale factor.',
             value=2,
-            values=[1, 2, 4, 8, 16],
+            range=(1.0, 16.0, 1),
             exclusive=True,
             uid=[0],
         ),
