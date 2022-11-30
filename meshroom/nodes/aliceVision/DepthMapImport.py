@@ -162,6 +162,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         y, x = (int(h / 2), int(w / 2))  # best pixel to compare is centered one (distance to pinhole == z, intrinsics has no impact)
         depthexr_distancepinhole = depthsexr[y][x]
         depthexr_z = depthexr_distancepinhole  # Utils.pinholeDistanceToZ(depthexr_distancepinhole, x, y, intrscs) # it must be exr intrinsics, useless if it's center
+        assert depthexr_z > 0  # if center point z is missing data, then we can't infer the ratio
         depthtof_z = depthstof[y][x]
         ratioExrvsTof = depthexr_z / depthtof_z
         return ratioExrvsTof
