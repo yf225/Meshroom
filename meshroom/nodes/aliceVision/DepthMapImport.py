@@ -123,21 +123,6 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
 
     def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbIntrinsics, rgbImageSuffix, depthImageSuffix):  #, ratio = 0.0):
-        # chunk.logger.info(f"depthIntrinsics: {depthIntrinsics}")
-        # chunk.logger.info(f"rgbIntrinsics._objects: {rgbIntrinsics._objects}")
-        # import meshroom
-        # for key in rgbIntrinsics._objects[0]._value._objects:
-        #     obj = rgbIntrinsics._objects[0]._value._objects[key]
-        #     if type(obj) == meshroom.core.attribute.Attribute:
-        #         chunk.logger.info(f"{key}, {obj._value}")
-        #     elif type(obj) == meshroom.core.attribute.GroupAttribute:
-        #         chunk.logger.info(f"{key}, {obj._value._objects}")
-        #     elif type(obj) == meshroom.core.attribute.ListAttribute:
-        #         chunk.logger.info(f"{key}, {obj._value._objects}")
-        # import pickle
-        # with open('/fsx/users/willfeng/3d_recon/Meshroom/rgbIntrinsics.pickle', 'wb') as f:
-        #     pickle.dump(rgbIntrinsics._objects[0]._value._objects, f, protocol=pickle.HIGHEST_PROTOCOL)
-
         f = open(cameras,)
         data = json.load(f)
 
@@ -157,7 +142,6 @@ That script expect the depth image to be aside the rgb image, and have similar n
                 inputExr = cv.imread(inputExrPath, -1)
                 exrWidth = inputExr.shape[1]
                 depthIntrinsics_scaled = Utils.scaleIntrinsics(depthIntrinsics, rgbIntrinsics)
-                # chunk.logger.info(f"depthIntrinsics_scaled: {depthIntrinsics_scaled}")
 
             # if not ratio:
             ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled, chunk)
@@ -186,7 +170,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         depths = self.readInputDepth(inputTofPath)
 
         # fx and fy are the focal lengths, cx, cy are the camera principal point.
-        #   focalLength = (pxFocalLength / width) * sensorWidth
+        # some formula: focalLength = (pxFocalLength / width) * sensorWidth
         w, h, fx, fy, cx, cy = intrscs["w"], intrscs["h"], intrscs["fx"], intrscs["fy"], intrscs["cx"], intrscs["cy"]
 
         if depths.shape[1] != w:
