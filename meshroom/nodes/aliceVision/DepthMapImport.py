@@ -212,7 +212,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
                 if d < 0:
                     z3 = depths[y, x] / 1000 * ratio
                     chunk.logger.info("here8")
-                    d = Utils.zToPinholeDistance(z3, x, y, intrscs)
+                    d = Utils.zToPinholeDistance(z3, x, y, intrscs, chunk)
                     chunk.logger.info("here9")
 
                 outputExr[y, x] = d
@@ -246,11 +246,17 @@ class Utils:
         hypoxy = math.hypot(pcy, fx, pcx)
         return fx * d / hypoxy
 
-    def zToPinholeDistance(z3, x, y, intrsc):
+    def zToPinholeDistance(z3, x, y, intrsc, chunk):
         # x3,y3,z3 : 3d point; x,y: 2d point
+        chunk.logger.info("here81")
         fx, fy, cx, cy = intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
+        chunk.logger.info("here82")
         pcx = x - cx
+        chunk.logger.info("here83")
         pcy = y - cy
+        chunk.logger.info("here84")
         x3 = pcx * z3 / fx
+        chunk.logger.info("here85")
         y3 = pcy * z3 / fy
+        chunk.logger.info("here86")
         return math.hypot(x3, y3, z3)
