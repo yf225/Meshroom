@@ -163,7 +163,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
             ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled)
             chunk.logger.info("calculated ratio for Exr vs. Tof:" + str(ratio))
 
-            self.writeExr(inputTofPath, depthIntrinsics_scaled, inputExrPath, outputExrPath, ratio)
+            self.writeExr(inputTofPath, depthIntrinsics_scaled, inputExrPath, outputExrPath, ratio, chunk)
             chunk.logger.info("wrote " + outputExrPath)
 
     # Compare the calculated depth and tof depth of centered pixel
@@ -182,7 +182,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         return ratio
 
     # intrinsics sized to output exr
-    def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio):
+    def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio, chunk):
         chunk.logger.info("here1")
         depths = self.readInputDepth(inputTofPath)
         chunk.logger.info("here2")
