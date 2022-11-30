@@ -144,9 +144,6 @@ That script expect the depth image to be aside the rgb image, and have similar n
         depthIntrinsics_scaled = None
 
         for view in data["views"]:
-            chunk.logger.info(f"view: {view}")
-            for k in view:
-                chunk.logger.info(f"{k}: {view[k]}")
             if self._stopped: raise RuntimeError("User asked to stop")
             rgb_image_path = view["path"]
             inputTofPath = rgb_image_path.replace(rgbImageSuffix, depthImageSuffix)  # add type png, jpg or depth16
@@ -160,7 +157,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
                 inputExr = cv.imread(inputExrPath, -1)
                 exrWidth = inputExr.shape[1]
                 depthIntrinsics_scaled = Utils.scaleIntrinsics(depthIntrinsics, rgbIntrinsics)
-                chunk.logger.info(f"depthIntrinsics_scaled: {depthIntrinsics_scaled}")
+                # chunk.logger.info(f"depthIntrinsics_scaled: {depthIntrinsics_scaled}")
 
             # if not ratio:
             ratio = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, depthIntrinsics_scaled, chunk)
@@ -174,8 +171,6 @@ That script expect the depth image to be aside the rgb image, and have similar n
     def calculateRatioExrvsTof(self, inputExrPath, inputTofPath, intrscs, chunk):
         depthsexr = cv.imread(inputExrPath, -1)
         depthstof = self.readInputDepth(inputTofPath)
-        chunk.logger.info(f"depthsexr.shape: {depthsexr.shape}")
-        chunk.logger.info(f"depthstof.shape: {depthstof.shape}")
         h, w = depthsexr.shape
         depthstof = cv.resize(depthstof, (w, h), interpolation=cv.INTER_NEAREST)
 
@@ -188,45 +183,30 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
     # intrinsics sized to output exr
     def writeExr(self, inputTofPath, intrscs, inputExrPath, outputExrPath, ratio, chunk):
-        chunk.logger.info("here1")
         depths = self.readInputDepth(inputTofPath)
-        chunk.logger.info(f"depths.shape: {depths.shape}")
-        chunk.logger.info("here2")
 
         # fx and fy are the focal lengths, cx, cy are the camera principal point.
         #   focalLength = (pxFocalLength / width) * sensorWidth
         w, h, fx, fy, cx, cy = intrscs["w"], intrscs["h"], intrscs["fx"], intrscs["fy"], intrscs["cx"], intrscs["cy"]
 
-        chunk.logger.info("here3")
         if depths.shape[1] != w:
             depths = cv.resize(depths, (w, h), interpolation=cv.INTER_NEAREST)
             # confidences = cv.resize(confidences, (w, h), interpolation=cv.INTER_NEAREST)
 
-        chunk.logger.info("here4")
         outputExr = np.zeros((h, w), np.float32)
-        chunk.logger.info("here5")
 
         if inputExrPath:
             inputExr = cv.imread(inputExrPath, -1)
 
-        chunk.logger.info("here6")
-
         for y in range(0, h):
             for x in range(0, w):
                 d = inputExr[y, x]
-                chunk.logger.info("here7")
                 if d < 0:
                     z3 = depths[y, x] / 1000 * ratio
-                    chunk.logger.info("here8")
                     d = Utils.zToPinholeDistance(z3, x, y, intrscs, chunk)
-                    chunk.logger.info("here9")
-
                 outputExr[y, x] = d
-                chunk.logger.info("here10")
 
-        chunk.logger.info("here11")
         cv.imwrite(outputExrPath, outputExr)
-        chunk.logger.info("here12")
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".depth_png") or depthPath.endswith(".depth_jpg"):
@@ -254,27 +234,10 @@ class Utils:
 
     def zToPinholeDistance(z3, x, y, intrsc, chunk):
         # x3,y3,z3 : 3d point; x,y: 2d point
-        chunk.logger.info("here81")
         fx, fy, cx, cy = intrsc["fx"], intrsc["fy"], intrsc["cx"], intrsc["cy"]
-        chunk.logger.info("here82")
-        chunk.logger.info(f"x: {x}")
-        chunk.logger.info(f"y: {y}")
-        chunk.logger.info(f"cx: {cx}")
-        chunk.logger.info(f"cy: {cy}")
-        chunk.logger.info(f"z3: {z3}")
-        chunk.logger.info(f"fx: {fx}")
-        chunk.logger.info(f"fy: {fy}")
         pcx = x - cx
-        chunk.logger.info("here83")
         pcy = y - cy
-        chunk.logger.info("here84")
         x3 = pcx * z3 / fx
-        chunk.logger.info("here85")
         y3 = pcy * z3 / fy
-        chunk.logger.info("here86")
-        chunk.logger.info(f"x3: {x3}")
-        chunk.logger.info(f"y3: {y3}")
-        chunk.logger.info(f"z3: {z3}")
         out = math.hypot(x3, y3, z3)
-        chunk.logger.info("here87")
         return out
