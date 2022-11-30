@@ -123,17 +123,17 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
 
     def importDepthMaps(self, chunk, cameras, inputDepthMapsFolder, outputDepthMapsFolder, depthIntrinsics, rgbIntrinsics, rgbImageSuffix, depthImageSuffix):  #, ratio = 0.0):
-        chunk.logger.info(f"depthIntrinsics: {depthIntrinsics}")
-        chunk.logger.info(f"rgbIntrinsics._objects: {rgbIntrinsics._objects}")
-        import meshroom
-        for key in rgbIntrinsics._objects[0]._value._objects:
-            obj = rgbIntrinsics._objects[0]._value._objects[key]
-            if type(obj) == meshroom.core.attribute.Attribute:
-                chunk.logger.info(f"{key}, {obj._value}")
-            elif type(obj) == meshroom.core.attribute.GroupAttribute:
-                chunk.logger.info(f"{key}, {obj._value._objects}")
-            elif type(obj) == meshroom.core.attribute.ListAttribute:
-                chunk.logger.info(f"{key}, {obj._value._objects}")
+        # chunk.logger.info(f"depthIntrinsics: {depthIntrinsics}")
+        # chunk.logger.info(f"rgbIntrinsics._objects: {rgbIntrinsics._objects}")
+        # import meshroom
+        # for key in rgbIntrinsics._objects[0]._value._objects:
+        #     obj = rgbIntrinsics._objects[0]._value._objects[key]
+        #     if type(obj) == meshroom.core.attribute.Attribute:
+        #         chunk.logger.info(f"{key}, {obj._value}")
+        #     elif type(obj) == meshroom.core.attribute.GroupAttribute:
+        #         chunk.logger.info(f"{key}, {obj._value._objects}")
+        #     elif type(obj) == meshroom.core.attribute.ListAttribute:
+        #         chunk.logger.info(f"{key}, {obj._value._objects}")
         # import pickle
         # with open('/fsx/users/willfeng/3d_recon/Meshroom/rgbIntrinsics.pickle', 'wb') as f:
         #     pickle.dump(rgbIntrinsics._objects[0]._value._objects, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -186,6 +186,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         depths = self.readInputDepth(inputTofPath)
 
         # fx and fy are the focal lengths, cx, cy are the camera principal point.
+        #   focalLength = (pxFocalLength / width) * sensorWidth
         w, h, fx, fy, cx, cy = intrscs["w"], intrscs["h"], intrscs["fx"], intrscs["fy"], intrscs["cx"], intrscs["cy"]
 
         if depths.shape[1] != w:
@@ -216,10 +217,14 @@ That script expect the depth image to be aside the rgb image, and have similar n
 
 class Utils:
     def scaleIntrinsics(depthIntrinsics, rgbIntrinsics):
-        ratio = rgbIntrinsics["w"] / depthIntrinsics["w"]
+        ratio = rgbIntrinsics._objects[0]._value._objects["width"]._value / depthIntrinsics["w"]
         depthIntrinsics_scaled = {}
-        for k in rgbIntrinsics:
-            depthIntrinsics_scaled[k] = int(rgbIntrinsics[k] / ratio)
+        depthIntrinsics_scaled["w"] = depthIntrinsics["w"]
+        depthIntrinsics_scaled["h"] = depthIntrinsics["h"]
+        depthIntrinsics_scaled["fx"] = int(rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio)
+        depthIntrinsics_scaled["fy"] = int(rgbIntrinsics._objects[0]._value._objects["pxFocalLength"]._value / ratio)
+        depthIntrinsics_scaled["cx"] = int(rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["x"]._value / ratio)
+        depthIntrinsics_scaled["cy"] = int(rgbIntrinsics._objects[0]._value._objects["principalPoint"]._value._objects["y"]._value / ratio)
         return depthIntrinsics_scaled
 
     def pinholeDistanceToZ(d, x, y, intrsc):
