@@ -196,8 +196,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
                 # FIXME: only using imported depth image, not merging with calculated depth image
                 outputExr_np[y, x] = depths[y, x] * ratioExrvsTof
 
-        in_header = OpenEXR.InputFile(inputExrPath).header()
-        chunk.logger.info(f"in_header: {in_header}")
+        in_header = {k: v for k, v in OpenEXR.InputFile(inputExrPath).header().items() if v is not None}
         out = OpenEXR.OutputFile(outputExrPath, in_header)
         px_val = outputExr_np.astype(np.float16).tostring()
         out.writePixels({'R': px_val, 'G': px_val, 'B': px_val})
