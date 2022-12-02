@@ -136,8 +136,11 @@ That script expect the depth image to be aside the rgb image, and have similar n
             if not os.path.isfile(inputTofPath): raise Exception("Depth file not found", inputTofPath, "check if the file exists or if the rgbImageSuffix and depthImageSuffix are properly set")
             inputExrPath = inputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
             if not os.path.isfile(inputExrPath): raise Exception("Input Exr not found", inputExrPath)
-            os.path.isfile(inputExrPath)
+            inputSimExrPath = inputDepthMapsFolder + "/" + view["viewId"] + "_simMap.exr"
+            if not os.path.isfile(inputSimExrPath): raise Exception("Input Sim Exr not found", inputSimExrPath)
             outputExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_depthMap.exr"
+            outputSimExrPath = outputDepthMapsFolder + "/" + view["viewId"] + "_simMap.exr"
+
 
             # if not depthIntrinsics_scaled:
             #     inputExr = cv.imread(inputExrPath, -1)
@@ -148,8 +151,9 @@ That script expect the depth image to be aside the rgb image, and have similar n
             ratioExrvsTof = self.calculateRatioExrvsTof(inputExrPath, inputTofPath, chunk)
             chunk.logger.info("calculated ratio for Exr vs. Tof:" + str(ratioExrvsTof))
 
-            self.writeExr(inputTofPath, depthIntrinsics["w"], depthIntrinsics["h"], inputExrPath, outputExrPath, ratioExrvsTof, chunk)
+            self.writeExr(inputTofPath, depthIntrinsics["w"], depthIntrinsics["h"], inputExrPath, inputSimExrPath, outputExrPath, outputSimExrPath, ratioExrvsTof, chunk)
             chunk.logger.info("wrote " + outputExrPath)
+            chunk.logger.info("wrote " + outputSimExrPath)
 
     # Compare the calculated depth and tof depth of centered pixel
     # Make sure that that center pixel has an high confidence both calculated and measured
@@ -168,7 +172,7 @@ That script expect the depth image to be aside the rgb image, and have similar n
         return ratioExrvsTof
 
     # intrinsics sized to output exr
-    def writeExr(self, inputTofPath, depth_image_width, depth_image_height, inputExrPath, outputExrPath, ratioExrvsTof, chunk):
+    def writeExr(self, inputTofPath, depth_image_width, depth_image_height, inputExrPath, inputSimExrPath, outputExrPath, outputSimExrPath, ratioExrvsTof, chunk):
         depths = self.readInputDepth(inputTofPath)
 
         # fx and fy are the focal lengths, cx, cy are the camera principal point.
@@ -196,11 +200,16 @@ That script expect the depth image to be aside the rgb image, and have similar n
                 # FIXME: only using imported depth image, not merging with calculated depth image
                 outputExr_np[y, x] = depths[y, x] * ratioExrvsTof
 
+        # Write depthExr file
         in_header = {k: v for k, v in OpenEXR.InputFile(inputExrPath).header().items() if v is not None}
         out = OpenEXR.OutputFile(outputExrPath, in_header)
         px_val = outputExr_np.astype(np.float16).tostring()
         out.writePixels({'R': px_val, 'G': px_val, 'B': px_val})
         out.close()
+
+        # Write simExr file
+        import shutil
+        shutil.copyfile(inputSimExrPath, outputSimExrPath)
 
     def readInputDepth(self, depthPath):
         if depthPath.endswith(".depth_png") or depthPath.endswith(".depth_jpg"):
